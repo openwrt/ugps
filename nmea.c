@@ -49,7 +49,7 @@ struct nmea_param {
 } nmea_params[MAX_NMEA_PARAM];
 
 static int nmea_bad_time;
-char longitude[32] = { 0 }, lattitude[32] = { 0 }, course[16] = { 0 }, speed[16] = { 0 }, elivation[16] = { 0 };
+char longitude[32] = { 0 }, latitude[32] = { 0 }, course[16] = { 0 }, speed[16] = { 0 }, elivation[16] = { 0 };
 int gps_valid = 0;
 
 static void
@@ -144,9 +144,9 @@ nmea_rmc_cb(void)
 		LOG("position: %d°%d'%.1f\" %d°%d'%.1f\"\n",
 			latd, latm, flats, lngd, lngm, flngs);
 
-		snprintf(lattitude, sizeof(lattitude), "%d.%d", latd, ms_to_deg(latm, lats));
+		snprintf(latitude, sizeof(latitude), "%d.%d", latd, ms_to_deg(latm, lats));
 		snprintf(longitude, sizeof(longitude), "%d.%d", lngd, ms_to_deg(lngm, lngs));
-		LOG("position: %s %s\n", lattitude, longitude);
+		LOG("position: %s %s\n", latitude, longitude);
 		gps_timestamp();
 	}
 }

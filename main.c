@@ -53,7 +53,7 @@ gps_info(struct ubus_context *ctx, struct ubus_object *obj,
 		blobmsg_add_u8(&b, "signal", 0);
 	} else {
 		blobmsg_add_u32(&b, "age", now.tv_sec - stamp.tv_sec);
-		blobmsg_add_string(&b, "lattitude", lattitude);
+		blobmsg_add_string(&b, "latitude", latitude);
 		blobmsg_add_string(&b, "longitude", longitude);
 		blobmsg_add_string(&b, "elivation", elivation);
 		blobmsg_add_string(&b, "course", course);
