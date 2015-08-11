@@ -144,8 +144,8 @@ nmea_rmc_cb(void)
 		LOG("position: %d°%d'%.1f\" %d°%d'%.1f\"\n",
 			latd, latm, flats, lngd, lngm, flngs);
 
-		snprintf(latitude, sizeof(latitude), "%d.%d", latd, ms_to_deg(latm, lats));
-		snprintf(longitude, sizeof(longitude), "%d.%d", lngd, ms_to_deg(lngm, lngs));
+		snprintf(latitude, sizeof(latitude), "%d.%04d", latd, ms_to_deg(latm, lats));
+		snprintf(longitude, sizeof(longitude), "%d.%04d", lngd, ms_to_deg(lngm, lngs));
 		LOG("position: %s %s\n", latitude, longitude);
 		gps_timestamp();
 	}
