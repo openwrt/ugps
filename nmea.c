@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <string.h>
 #include <termios.h>
@@ -314,7 +315,7 @@ nmea_open(char *dev, struct ustream_fd *s, speed_t speed)
 
 	tty = open(dev, O_RDWR | O_NOCTTY | O_NONBLOCK);
 	if (tty < 0) {
-		ERROR("%s: device open failed\n", dev);
+		ERROR("%s: device open failed: %s\n", dev, strerror(errno));
 		return -1;
 	}
 
