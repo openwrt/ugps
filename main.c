@@ -27,9 +27,11 @@
 #include "log.h"
 #include "nmea.h"
 
+unsigned int debug;
 static struct ustream_fd stream;
 static struct ubus_auto_conn conn;
 static struct blob_buf b;
+static char *ubus_socket;
 struct timespec stamp = { 0 };
 
 void
@@ -89,22 +91,58 @@ ubus_connect_handler(struct ubus_context *ctx)
 }
 
 static int
-usage(void)
+usage(const char *prog)
 {
-	LOG("ugps <device>\n");
+	fprintf(stderr, "Usage: %s [options] <device>\n"
+		"Options:\n"
+		"	-s <path>	Path to ubus socket\n"
+		"	-d <level>	Enable debug messages\n"
+		"	-S		Print messages to stdout\n"
+		"\n", prog);
 	return -1;
 }
 
 int
 main(int argc, char ** argv)
 {
+	int ch;
+	char *device = NULL;
+	char *dbglvl = getenv("DBGLVL");
+	int ulog_channels = ULOG_KMSG;
 
 	signal(SIGPIPE, SIG_IGN);
 
-	if (argc != 2)
-		return usage();
+	if (dbglvl) {
+		debug = atoi(dbglvl);
+		unsetenv("DBGLVL");
+	}
+
+	while ((ch = getopt(argc, argv, "d:D:s:S")) != -1) {
+		switch (ch) {
+		case 's':
+			ubus_socket = optarg;
+			break;
+		case 'd':
+			debug = atoi(optarg);
+			break;
+		case 'S':
+			ulog_channels = ULOG_STDIO;
+			break;
+		default:
+			return usage(argv[0]);
+		}
+	}
+
+	if (argc - optind < 1) {
+		fprintf(stderr, "ERROR: missing device parameter\n");
+		return usage(argv[0]);
+	}
+
+	device = argv[optind];
+	ulog_open(ulog_channels, LOG_DAEMON, "ugps");
 
 	uloop_init();
+	conn.path = ubus_socket;
 	conn.cb = ubus_connect_handler;
 	ubus_auto_connect(&conn);
 	nmea_open(argv[1], &stream, B4800);

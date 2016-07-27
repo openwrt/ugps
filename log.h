@@ -15,18 +15,15 @@
 #ifndef __LOG_H
 #define __LOG_H
 
-#include <stdio.h>
-#include <syslog.h>
+#include <libubox/ulog.h>
 
-#define LOG(fmt, ...) do { \
-		syslog(LOG_INFO, fmt, ## __VA_ARGS__); \
-		fprintf(stderr, "ugps: "fmt, ## __VA_ARGS__); \
-	} while (0)
+#define DEBUG(level, fmt, ...) do { \
+	if (debug >= level) { \
+		ulog(LOG_DEBUG, fmt, ## __VA_ARGS__); \
+	} } while (0)
 
-#define ERROR(fmt, ...) do { \
-		syslog(LOG_ERR, fmt, ## __VA_ARGS__); \
-		fprintf(stderr, "ugps: "fmt, ## __VA_ARGS__); \
-	} while (0)
+#define LOG   ULOG_INFO
+#define ERROR ULOG_ERR
 
 extern unsigned int debug;
 

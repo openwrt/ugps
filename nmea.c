@@ -60,7 +60,7 @@ nmea_txt_cb(void)
 	if (nmea_params[3].num < 0 || nmea_params[3].num > 2)
 		nmea_params[3].num = 0;
 
-	LOG("%s: %s\n", ids[nmea_params[3].num], nmea_params[4].str);
+	DEBUG(3, "%s: %s\n", ids[nmea_params[3].num], nmea_params[4].str);
 }
 
 static void
@@ -71,7 +71,7 @@ nmea_rmc_cb(void)
 
 	if (*nmea_params[2].str != 'A') {
 		gps_valid = 0;
-		fprintf(stderr, "waiting for valid signal\n");
+		DEBUG(4, "waiting for valid signal\n");
 		return;
 	}
 
@@ -89,7 +89,7 @@ nmea_rmc_cb(void)
 		struct timeval cur;
 
 		strftime(tmp, 256, "%D %02H:%02M:%02S", &tm);
-		LOG("date: %s UTC\n", tmp);
+		DEBUG(3, "date: %s UTC\n", tmp);
 
 		tv.tv_sec -= timezone;
 		if (daylight)
@@ -113,7 +113,7 @@ nmea_rmc_cb(void)
 		int latd, latm, lats;
 		int lngd, lngm, lngs;
 		float flats, flngs;
-		LOG("position: %s, %s\n",
+		DEBUG(4, "position: %s, %s\n",
 			nmea_params[3].str, nmea_params[5].str);
 		latm = atoi(&nmea_params[3].str[2]);
 		nmea_params[3].str[2] = '\0';
@@ -139,14 +139,14 @@ nmea_rmc_cb(void)
 
 #define ms_to_deg(x, y) (((x * 10000) + y) / 60)
 
-		LOG("position: %d°%d.%04d, %d°%d.%04d\n",
+		DEBUG(4, "position: %d°%d.%04d, %d°%d.%04d\n",
 			latd, latm, lats, lngd, lngm, lngs);
-		LOG("position: %d°%d'%.1f\" %d°%d'%.1f\"\n",
+		DEBUG(4, "position: %d°%d'%.1f\" %d°%d'%.1f\"\n",
 			latd, latm, flats, lngd, lngm, flngs);
 
 		snprintf(latitude, sizeof(latitude), "%d.%04d", latd, ms_to_deg(latm, lats));
 		snprintf(longitude, sizeof(longitude), "%d.%04d", lngd, ms_to_deg(lngm, lngs));
-		LOG("position: %s %s\n", latitude, longitude);
+		DEBUG(3, "position: %s %s\n", latitude, longitude);
 		gps_timestamp();
 	}
 }
@@ -157,7 +157,7 @@ nmea_gga_cb(void)
 	if (!gps_valid)
 		return;
 	strncpy(elivation, nmea_params[9].str, sizeof(elivation));
-	LOG("height: %s\n", elivation);
+	DEBUG(4, "height: %s\n", elivation);
 }
 
 static void
@@ -167,8 +167,8 @@ nmea_vtg_cb(void)
 		return;
 	strncpy(course, nmea_params[1].str, sizeof(course));
 	strncpy(speed, nmea_params[6].str, sizeof(speed));
-	LOG("course: %s\n", course);
-	LOG("speed: %s\n", speed);
+	DEBUG(4, "course: %s\n", course);
+	DEBUG(4, "speed: %s\n", speed);
 }
 
 static struct nmea_msg {
