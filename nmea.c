@@ -221,13 +221,13 @@ static int
 nmea_tokenize(char *msg)
 {
 	int cnt = 0;
-	char *tok = strtok(msg, ",");
+	char *tok = strsep(&msg, ",");
 
 	while (tok && cnt < MAX_NMEA_PARAM) {
 		nmea_params[cnt].str = tok;
 		nmea_params[cnt].num = atoi(tok);
 		cnt++;
-		tok = strtok(NULL, ",");
+		tok = strsep(&msg, ",");
 	}
 
 	return cnt;
