@@ -248,7 +248,7 @@ nmea_process(char *a)
 		return;
 
 	if (nmea_verify_checksum(a)) {
-		ERROR("nmea message has invlid checksum\n");
+		ERROR("nmea message has invalid checksum\n");
 		return;
 	}
 
