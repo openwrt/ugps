@@ -145,7 +145,10 @@ main(int argc, char ** argv)
 	conn.path = ubus_socket;
 	conn.cb = ubus_connect_handler;
 	ubus_auto_connect(&conn);
-	nmea_open(argv[1], &stream, B4800);
+
+	if (nmea_open(device, &stream, B4800) < 0)
+		return -1;
+
 	uloop_run();
 	uloop_done();
 
