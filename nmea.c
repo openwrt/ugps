@@ -139,7 +139,7 @@ nmea_rmc_cb(void)
 		flngs *= 60;
 		flngs /= 10000;
 
-#define ms_to_deg(x, y) (((x * 10000) + y) / 60)
+#define ms_to_deg(x, y) (((x * 1000000) + y) / 60)
 
 		DEBUG(4, "position: %d°%d.%04d, %d°%d.%04d\n",
 			latd, latm, lats, lngd, lngm, lngs);
