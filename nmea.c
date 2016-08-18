@@ -168,7 +168,7 @@ nmea_vtg_cb(void)
 	if (!gps_valid)
 		return;
 	strncpy(course, nmea_params[1].str, sizeof(course));
-	strncpy(speed, nmea_params[6].str, sizeof(speed));
+	strncpy(speed, nmea_params[7].str, sizeof(speed));
 	DEBUG(4, "course: %s\n", course);
 	DEBUG(4, "speed: %s\n", speed);
 }
