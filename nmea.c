@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
+#include <math.h>
 
 #include <string.h>
 #include <termios.h>
@@ -112,42 +113,27 @@ nmea_rmc_cb(void)
 		ERROR("lat/lng have invalid string length %d<9, %d<10\n",
 		       strlen(nmea_params[3].str), strlen(nmea_params[5].str));
 	} else {
-		int latd, latm, lats;
-		int lngd, lngm, lngs;
-		float flats, flngs;
-		DEBUG(4, "position: %s, %s\n",
-			nmea_params[3].str, nmea_params[5].str);
-		latm = atoi(&nmea_params[3].str[2]);
-		nmea_params[3].str[2] = '\0';
-		latd = atoi(nmea_params[3].str);
-		lats = atoi(&nmea_params[3].str[5]);
-		if (*nmea_params[4].str != 'N')
-			latm *= -1;
+		float minutes;
+		float degrees;
+		float lat = strtof(nmea_params[3].str, NULL);
+		float lon = strtof(nmea_params[5].str, NULL);
 
-		lngm = atoi(&nmea_params[5].str[3]);
-		nmea_params[5].str[3] = '\0';
-		lngd = atoi(nmea_params[5].str);
-		lngs = atoi(&nmea_params[5].str[6]);
-		if (*nmea_params[6].str != 'E')
-			lngm *= -1;
+		if (*nmea_params[4].str == 'S')
+			lat *= -1.0;
+		if (*nmea_params[6].str == 'W')
+			lon *= -1.0;
 
-		flats = lats;
-		flats *= 60;
-		flats /= 10000;
+		degrees = floor(lat / 100.0);
+		minutes = lat - (degrees * 100.0);
+	        lat = degrees + minutes / 60.0;
 
-		flngs = lngs;
-		flngs *= 60;
-		flngs /= 10000;
+	        degrees = floor(lon / 100.0);
+		minutes = lon - (degrees * 100.0);
+		lon = degrees + minutes / 60.0;
 
-#define ms_to_deg(x, y) (((x * 1000000) + y) / 60)
+		snprintf(latitude, sizeof(latitude), "%f", lat);
+		snprintf(longitude, sizeof(longitude), "%f", lon);
 
-		DEBUG(4, "position: %d°%d.%04d, %d°%d.%04d\n",
-			latd, latm, lats, lngd, lngm, lngs);
-		DEBUG(4, "position: %d°%d'%.1f\" %d°%d'%.1f\"\n",
-			latd, latm, flats, lngd, lngm, flngs);
-
-		snprintf(latitude, sizeof(latitude), "%d.%04d", latd, ms_to_deg(latm, lats));
-		snprintf(longitude, sizeof(longitude), "%d.%04d", lngd, ms_to_deg(lngm, lngs));
 		DEBUG(3, "position: %s %s\n", latitude, longitude);
 		gps_timestamp();
 	}
