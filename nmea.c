@@ -42,7 +42,7 @@
 #include "nmea.h"
 
 #define MAX_NMEA_PARAM	20
-#define MAX_TIME_OFFSET	2
+#define MAX_TIME_OFFSET	5
 #define MAX_BAD_TIME	3
 
 struct nmea_param {
@@ -51,7 +51,7 @@ struct nmea_param {
 } nmea_params[MAX_NMEA_PARAM];
 
 static int nmea_bad_time;
-char longitude[32] = { 0 }, latitude[32] = { 0 }, course[16] = { 0 }, speed[16] = { 0 }, elivation[16] = { 0 };
+char longitude[32] = { 0 }, latitude[32] = { 0 }, course[16] = { 0 }, speed[16] = { 0 }, elevation[16] = { 0 };
 int gps_valid = 0;
 
 static void
@@ -81,31 +81,36 @@ nmea_rmc_cb(void)
 	memset(&tm, 0, sizeof(tm));
 	tm.tm_isdst = 1;
 
-	if (!strptime(nmea_params[1].str, "%H%M%S", &tm))
-		ERROR("failed to parse time\n");
-	else if (!strptime(nmea_params[9].str, "%d%m%y", &tm))
-		ERROR("failed to parse date\n");
+	if (sscanf(nmea_params[1].str, "%02d%02d%02d",
+		&tm.tm_hour, &tm.tm_min, &tm.tm_sec) != 3) {
+		ERROR("failed to parse time '%s'\n", nmea_params[1].str);
+	}
+	else if (sscanf(nmea_params[9].str, "%02d%02d%02d",
+		&tm.tm_mday, &tm.tm_mon, &tm.tm_year) != 3) {
+		ERROR("failed to parse date '%s'\n", nmea_params[9].str);
+	}
 	else {
-		/* is there a libc api for the tz adjustment ? */
-		struct timeval tv = { mktime(&tm), 0 };
-		struct timeval cur;
+		tm.tm_year += 100; /* year starts with 1900 */
+		tm.tm_mon -= 1; /* month starts with 0 */
 
-		strftime(tmp, 256, "%D %02H:%02M:%02S", &tm);
+		strftime(tmp, 256, "%Y-%m-%dT%H:%M:%S", &tm);
 		DEBUG(3, "date: %s UTC\n", tmp);
 
-		tv.tv_sec -= timezone;
-		if (daylight)
-			tv.tv_sec += 3600;
+		if (adjust_clock) {
+			struct timeval tv = { timegm(&tm), 0 };
+			struct timeval cur;
 
-		gettimeofday(&cur, NULL);
+			gettimeofday(&cur, NULL);
 
-		if (abs(cur.tv_sec - tv.tv_sec) > MAX_TIME_OFFSET) {
-			if (++nmea_bad_time > MAX_BAD_TIME) {
-				LOG("system time differs from GPS time by more than %d seconds. Using %s UTC as the new time\n", MAX_TIME_OFFSET, tmp);
-				settimeofday(&tv, NULL);
+			if (abs(cur.tv_sec - tv.tv_sec) > MAX_TIME_OFFSET) {
+				if (++nmea_bad_time > MAX_BAD_TIME) {
+					LOG("system time differs from GPS time by more than %d seconds. Using %s UTC as the new time\n", MAX_TIME_OFFSET, tmp);
+					/* only set datetime if specified by command line argument! */
+					settimeofday(&tv, NULL);
+				}
+			} else {
+				nmea_bad_time = 0;
 			}
-		} else {
-			nmea_bad_time = 0;
 		}
 	}
 
@@ -144,8 +149,8 @@ nmea_gga_cb(void)
 {
 	if (!gps_valid)
 		return;
-	strncpy(elivation, nmea_params[9].str, sizeof(elivation));
-	DEBUG(4, "height: %s\n", elivation);
+	strncpy(elevation, nmea_params[9].str, sizeof(elevation));
+	DEBUG(4, "height: %s\n", elevation);
 }
 
 static void

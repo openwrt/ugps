@@ -33,6 +33,7 @@ static struct ubus_auto_conn conn;
 static struct blob_buf b;
 static char *ubus_socket;
 struct timespec stamp = { 0 };
+unsigned int adjust_clock = 0;
 
 void
 gps_timestamp(void)
@@ -57,7 +58,7 @@ gps_info(struct ubus_context *ctx, struct ubus_object *obj,
 		blobmsg_add_u32(&b, "age", now.tv_sec - stamp.tv_sec);
 		blobmsg_add_string(&b, "latitude", latitude);
 		blobmsg_add_string(&b, "longitude", longitude);
-		blobmsg_add_string(&b, "elivation", elivation);
+		blobmsg_add_string(&b, "elevation", elevation);
 		blobmsg_add_string(&b, "course", course);
 		blobmsg_add_string(&b, "speed", speed);
 	}
@@ -95,6 +96,7 @@ usage(const char *prog)
 {
 	fprintf(stderr, "Usage: %s [options] <device>\n"
 		"Options:\n"
+		"	-a		Adjust system clock from gps\n"
 		"	-s <path>	Path to ubus socket\n"
 		"	-d <level>	Enable debug messages\n"
 		"	-S		Print messages to stdout\n"
@@ -117,8 +119,11 @@ main(int argc, char ** argv)
 		unsetenv("DBGLVL");
 	}
 
-	while ((ch = getopt(argc, argv, "d:D:s:S")) != -1) {
+	while ((ch = getopt(argc, argv, "ad:s:S")) != -1) {
 		switch (ch) {
+		case 'a':
+			adjust_clock = -1;
+			break;
 		case 's':
 			ubus_socket = optarg;
 			break;
