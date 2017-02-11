@@ -19,7 +19,7 @@ INCLUDE_DIRECTORIES(${ubox_include_dir} ${ubus_include_dir})
 
 ADD_EXECUTABLE(ugps ${SOURCES})
 
-TARGET_LINK_LIBRARIES(ugps ${ubox} ${ubus})
+TARGET_LINK_LIBRARIES(ugps ${ubox} ${ubus} m)
 
 INSTALL(TARGETS ugps
 	RUNTIME DESTINATION sbin
