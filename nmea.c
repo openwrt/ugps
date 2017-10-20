@@ -123,11 +123,6 @@ nmea_rmc_cb(void)
 		float lat = strtof(nmea_params[3].str, NULL);
 		float lon = strtof(nmea_params[5].str, NULL);
 
-		if (*nmea_params[4].str == 'S')
-			lat *= -1.0;
-		if (*nmea_params[6].str == 'W')
-			lon *= -1.0;
-
 		degrees = floor(lat / 100.0);
 		minutes = lat - (degrees * 100.0);
 	        lat = degrees + minutes / 60.0;
@@ -135,6 +130,11 @@ nmea_rmc_cb(void)
 	        degrees = floor(lon / 100.0);
 		minutes = lon - (degrees * 100.0);
 		lon = degrees + minutes / 60.0;
+
+		if (*nmea_params[4].str == 'S')
+			lat *= -1.0;
+		if (*nmea_params[6].str == 'W')
+			lon *= -1.0;		
 
 		snprintf(latitude, sizeof(latitude), "%f", lat);
 		snprintf(longitude, sizeof(longitude), "%f", lon);
