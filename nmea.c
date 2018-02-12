@@ -16,7 +16,7 @@
  *   Copyright (C) 2014 John Crispin <blogic@openwrt.org> 
  */
 
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #define _XOPEN_SOURCE
 #include <time.h>
 
@@ -134,7 +134,7 @@ nmea_rmc_cb(void)
 		if (*nmea_params[4].str == 'S')
 			lat *= -1.0;
 		if (*nmea_params[6].str == 'W')
-			lon *= -1.0;		
+			lon *= -1.0;
 
 		snprintf(latitude, sizeof(latitude), "%f", lat);
 		snprintf(longitude, sizeof(longitude), "%f", lon);
