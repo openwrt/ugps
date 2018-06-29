@@ -51,7 +51,7 @@ struct nmea_param {
 } nmea_params[MAX_NMEA_PARAM];
 
 static int nmea_bad_time;
-char longitude[32] = { 0 }, latitude[32] = { 0 }, course[16] = { 0 }, speed[16] = { 0 }, elevation[16] = { 0 };
+char longitude[33] = { 0 }, latitude[33] = { 0 }, course[17] = { 0 }, speed[17] = { 0 }, elevation[17] = { 0 };
 int gps_valid = 0;
 
 static void
