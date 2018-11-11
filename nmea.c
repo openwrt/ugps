@@ -18,6 +18,7 @@
 
 #define _DEFAULT_SOURCE
 #define _XOPEN_SOURCE
+#define _BSD_SOURCE
 #include <time.h>
 
 #include <sys/types.h>
