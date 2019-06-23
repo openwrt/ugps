@@ -118,7 +118,7 @@ nmea_rmc_cb(void)
 	}
 
 	if (strlen(nmea_params[3].str) < 9 || strlen(nmea_params[5].str) < 10) {
-		ERROR("lat/lng have invalid string length %d<9, %d<10\n",
+		ERROR("lat/lng have invalid string length %zu<9, %zu<10\n",
 		       strlen(nmea_params[3].str), strlen(nmea_params[5].str));
 	} else {
 		float minutes;
