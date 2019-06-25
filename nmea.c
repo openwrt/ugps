@@ -233,7 +233,8 @@ static void
 nmea_process(char *a)
 {
 	char *csum;
-	int cnt, i;
+	int cnt;
+	unsigned int i;
 
 	if (strncmp(a, "$GP", 3))
 		return;
