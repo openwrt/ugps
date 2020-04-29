@@ -99,12 +99,12 @@ nmea_rmc_cb(void)
 
 		if (adjust_clock) {
 			time_t sec = timegm(&tm);
-			struct timeval tv = { 0 };
 			struct timeval cur;
 
 			gettimeofday(&cur, NULL);
 
-			if ((sec < 0) || (abs(cur.tv_sec - tv.tv_sec) > MAX_TIME_OFFSET)) {
+			if ((sec < 0) || (abs(cur.tv_sec - sec) > MAX_TIME_OFFSET)) {
+				struct timeval tv = { 0 };
 				tv.tv_sec = sec;
 				if (++nmea_bad_time > MAX_BAD_TIME) {
 					LOG("system time differs from GPS time by more than %d seconds. Using %s UTC as the new time\n", MAX_TIME_OFFSET, tmp);
