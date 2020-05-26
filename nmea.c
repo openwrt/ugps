@@ -90,6 +90,10 @@ nmea_rmc_cb(void)
 		&tm.tm_mday, &tm.tm_mon, &tm.tm_year) != 3) {
 		ERROR("failed to parse date '%s'\n", nmea_params[9].str);
 	}
+	else if (tm.tm_year == 0) {
+		DEBUG(4, "waiting for valid date\n");
+		return;
+	}
 	else {
 		tm.tm_year += 100; /* year starts with 1900 */
 		tm.tm_mon -= 1; /* month starts with 0 */
