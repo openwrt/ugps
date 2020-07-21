@@ -107,7 +107,7 @@ nmea_rmc_cb(void)
 
 			gettimeofday(&cur, NULL);
 
-			if ((sec < 0) || (abs(cur.tv_sec - sec) > MAX_TIME_OFFSET)) {
+			if ((sec < 0) || (llabs(cur.tv_sec - sec) > MAX_TIME_OFFSET)) {
 				struct timeval tv = { 0 };
 				tv.tv_sec = sec;
 				if (++nmea_bad_time > MAX_BAD_TIME) {
