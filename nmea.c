@@ -95,6 +95,34 @@ do_adjust_clock(struct tm *tm)
 }
 
 static void
+parse_gps_coords(char *latstr, char *vhem, char *lonstr, char *hhem)
+{
+	float minutes;
+	float degrees;
+	float lat = strtof(latstr, NULL);
+	float lon = strtof(lonstr, NULL);
+
+	degrees = floor(lat / 100.0);
+	minutes = lat - (degrees * 100.0);
+	lat = degrees + minutes / 60.0;
+
+	degrees = floor(lon / 100.0);
+	minutes = lon - (degrees * 100.0);
+	lon = degrees + minutes / 60.0;
+
+	if (*vhem == 'S')
+		lat *= -1.0;
+	if (*hhem == 'W')
+		lon *= -1.0;
+
+	snprintf(latitude, sizeof(latitude), "%f", lat);
+	snprintf(longitude, sizeof(longitude), "%f", lon);
+
+	DEBUG(3, "position: %s %s\n", latitude, longitude);
+	gps_timestamp();
+}
+
+static void
 nmea_rmc_cb(void)
 {
 	struct tm tm;
@@ -132,29 +160,7 @@ nmea_rmc_cb(void)
 		ERROR("lat/lng have invalid string length %zu<9, %zu<10\n",
 		       strlen(nmea_params[3].str), strlen(nmea_params[5].str));
 	} else {
-		float minutes;
-		float degrees;
-		float lat = strtof(nmea_params[3].str, NULL);
-		float lon = strtof(nmea_params[5].str, NULL);
-
-		degrees = floor(lat / 100.0);
-		minutes = lat - (degrees * 100.0);
-	        lat = degrees + minutes / 60.0;
-
-	        degrees = floor(lon / 100.0);
-		minutes = lon - (degrees * 100.0);
-		lon = degrees + minutes / 60.0;
-
-		if (*nmea_params[4].str == 'S')
-			lat *= -1.0;
-		if (*nmea_params[6].str == 'W')
-			lon *= -1.0;
-
-		snprintf(latitude, sizeof(latitude), "%f", lat);
-		snprintf(longitude, sizeof(longitude), "%f", lon);
-
-		DEBUG(3, "position: %s %s\n", latitude, longitude);
-		gps_timestamp();
+		parse_gps_coords(nmea_params[3].str, nmea_params[4].str, nmea_params[5].str, nmea_params[6].str);
 	}
 }
 
@@ -163,7 +169,8 @@ nmea_zda_cb(void)
 {
 	struct tm tm;
 
-	gps_valid = 1;
+	if (!gps_valid)
+		return;
 
 	memset(&tm, 0, sizeof(tm));
 	tm.tm_isdst = 1;
@@ -191,6 +198,20 @@ nmea_zda_cb(void)
 	tm.tm_year -= 1900; /* full 4-digit year, tm expects years till 1900 */
 
 	do_adjust_clock(&tm);
+}
+
+static void
+nmea_gll_cb(void)
+{
+	if (*nmea_params[6].str != 'A') {
+		gps_valid = 0;
+		DEBUG(4, "waiting for valid signal\n");
+		return;
+	}
+
+	gps_valid = 1;
+
+	parse_gps_coords(nmea_params[1].str, nmea_params[2].str, nmea_params[3].str, nmea_params[4].str);
 }
 
 static void
@@ -230,6 +251,10 @@ static struct nmea_msg {
 		.msg = "GGA",
 		.cnt = 14,
 		.handler = nmea_gga_cb,
+	}, {
+		.msg = "GLL",
+		.cnt = 7,
+		.handler = nmea_gll_cb,
 	}, {
 		.msg = "VTG",
 		.cnt = 9,
