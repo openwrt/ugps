@@ -52,15 +52,20 @@ gps_info(struct ubus_context *ctx, struct ubus_object *obj,
 
 	blob_buf_init(&b, 0);
 
-	if (!stamp.tv_sec) {
+	if (!stamp.tv_sec || !gps_fields) {
 		blobmsg_add_u8(&b, "signal", 0);
 	} else {
 		blobmsg_add_u32(&b, "age", now.tv_sec - stamp.tv_sec);
-		blobmsg_add_string(&b, "latitude", latitude);
-		blobmsg_add_string(&b, "longitude", longitude);
-		blobmsg_add_string(&b, "elevation", elevation);
-		blobmsg_add_string(&b, "course", course);
-		blobmsg_add_string(&b, "speed", speed);
+		if (gps_fields & GPS_FIELD_LAT)
+			blobmsg_add_string(&b, "latitude", latitude);
+		if (gps_fields & GPS_FIELD_LON)
+			blobmsg_add_string(&b, "longitude", longitude);
+		if (gps_fields & GPS_FIELD_ALT)
+			blobmsg_add_string(&b, "elevation", elevation);
+		if (gps_fields & GPS_FIELD_COG)
+			blobmsg_add_string(&b, "course", course);
+		if (gps_fields & GPS_FIELD_SPD)
+			blobmsg_add_string(&b, "speed", speed);
 	}
 	ubus_send_reply(ctx, req, b.head);
 

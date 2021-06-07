@@ -54,6 +54,7 @@ struct nmea_param {
 static int nmea_bad_time;
 char longitude[33] = { 0 }, latitude[33] = { 0 }, course[17] = { 0 }, speed[17] = { 0 }, elevation[17] = { 0 };
 int gps_valid = 0;
+char gps_fields = 0;
 
 static void
 nmea_txt_cb(void)
@@ -119,6 +120,8 @@ parse_gps_coords(char *latstr, char *vhem, char *lonstr, char *hhem)
 	snprintf(longitude, sizeof(longitude), "%f", lon);
 
 	DEBUG(3, "position: %s %s\n", latitude, longitude);
+	gps_fields |= GPS_FIELD_LAT | GPS_FIELD_LON;
+
 	gps_timestamp();
 }
 
@@ -220,6 +223,7 @@ nmea_gga_cb(void)
 	if (!gps_valid)
 		return;
 	strncpy(elevation, nmea_params[9].str, sizeof(elevation));
+	gps_fields |= GPS_FIELD_ALT;
 	DEBUG(4, "height: %s\n", elevation);
 }
 
@@ -230,6 +234,7 @@ nmea_vtg_cb(void)
 		return;
 	strncpy(course, nmea_params[1].str, sizeof(course));
 	strncpy(speed, nmea_params[7].str, sizeof(speed));
+	gps_fields |= GPS_FIELD_COG | GPS_FIELD_SPD;
 	DEBUG(4, "course: %s\n", course);
 	DEBUG(4, "speed: %s\n", speed);
 }
