@@ -67,10 +67,37 @@ nmea_txt_cb(void)
 }
 
 static void
+do_adjust_clock(struct tm *tm)
+{
+	char tmp[256];
+
+	strftime(tmp, 256, "%Y-%m-%dT%H:%M:%S", tm);
+	DEBUG(3, "date: %s UTC\n", tmp);
+
+	if (adjust_clock) {
+		time_t sec = timegm(tm);
+		struct timeval cur;
+
+		gettimeofday(&cur, NULL);
+
+		if ((sec < 0) || (llabs(cur.tv_sec - sec) > MAX_TIME_OFFSET)) {
+			struct timeval tv = { 0 };
+			tv.tv_sec = sec;
+			if (++nmea_bad_time > MAX_BAD_TIME) {
+				LOG("system time differs from GPS time by more than %d seconds. Using %s UTC as the new time\n", MAX_TIME_OFFSET, tmp);
+				/* only set datetime if specified by command line argument! */
+				settimeofday(&tv, NULL);
+			}
+		} else {
+			nmea_bad_time = 0;
+		}
+	}
+}
+
+static void
 nmea_rmc_cb(void)
 {
 	struct tm tm;
-	char tmp[256];
 
 	if (*nmea_params[2].str != 'A') {
 		gps_valid = 0;
@@ -98,27 +125,7 @@ nmea_rmc_cb(void)
 		tm.tm_year += 100; /* year starts with 1900 */
 		tm.tm_mon -= 1; /* month starts with 0 */
 
-		strftime(tmp, 256, "%Y-%m-%dT%H:%M:%S", &tm);
-		DEBUG(3, "date: %s UTC\n", tmp);
-
-		if (adjust_clock) {
-			time_t sec = timegm(&tm);
-			struct timeval cur;
-
-			gettimeofday(&cur, NULL);
-
-			if ((sec < 0) || (llabs(cur.tv_sec - sec) > MAX_TIME_OFFSET)) {
-				struct timeval tv = { 0 };
-				tv.tv_sec = sec;
-				if (++nmea_bad_time > MAX_BAD_TIME) {
-					LOG("system time differs from GPS time by more than %d seconds. Using %s UTC as the new time\n", MAX_TIME_OFFSET, tmp);
-					/* only set datetime if specified by command line argument! */
-					settimeofday(&tv, NULL);
-				}
-			} else {
-				nmea_bad_time = 0;
-			}
-		}
+		do_adjust_clock(&tm);
 	}
 
 	if (strlen(nmea_params[3].str) < 9 || strlen(nmea_params[5].str) < 10) {
@@ -149,6 +156,41 @@ nmea_rmc_cb(void)
 		DEBUG(3, "position: %s %s\n", latitude, longitude);
 		gps_timestamp();
 	}
+}
+
+static void
+nmea_zda_cb(void)
+{
+	struct tm tm;
+
+	gps_valid = 1;
+
+	memset(&tm, 0, sizeof(tm));
+	tm.tm_isdst = 1;
+
+	if (sscanf(nmea_params[1].str, "%02d%02d%02d",
+		&tm.tm_hour, &tm.tm_min, &tm.tm_sec) != 3) {
+		ERROR("failed to parse time '%s'\n", nmea_params[1].str);
+		return;
+	}
+
+	if ((sscanf(nmea_params[2].str, "%02d", &tm.tm_mday) != 1) ||
+	    (sscanf(nmea_params[3].str, "%02d", &tm.tm_mon) != 1) ||
+	    (sscanf(nmea_params[4].str, "%04d", &tm.tm_year) != 1)) {
+		ERROR("failed to parse time '%s,%s,%s'\n",
+			nmea_params[2].str, nmea_params[3].str, nmea_params[4].str);
+		return;
+	}
+
+	if (tm.tm_year == 0) {
+		DEBUG(4, "waiting for valid date\n");
+		return;
+	}
+
+	tm.tm_mon -= 1; /* month starts with 0 */
+	tm.tm_year -= 1900; /* full 4-digit year, tm expects years till 1900 */
+
+	do_adjust_clock(&tm);
 }
 
 static void
@@ -192,6 +234,10 @@ static struct nmea_msg {
 		.msg = "VTG",
 		.cnt = 9,
 		.handler = nmea_vtg_cb,
+	}, {
+		.msg = "ZDA",
+		.cnt = 5,
+		.handler = nmea_zda_cb,
 	},
 };
 
