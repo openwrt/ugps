@@ -316,7 +316,8 @@ nmea_process(char *a)
 	int cnt;
 	unsigned int i;
 
-	if (strncmp(a, "$GP", 3))
+	if (strncmp(a, "$GP", 3) &&
+	    strncmp(a, "$GN", 3))
 		return;
 
 	a++;
@@ -336,7 +337,8 @@ nmea_process(char *a)
 	}
 
 	for (i = 0; i < ARRAY_SIZE(nmea_msgs); i++) {
-		if (strcmp(nmea_params[0].str, nmea_msgs[i].msg))
+		if (strcmp(nmea_params[0].str, nmea_msgs[i].msg) &&
+		    strcmp(nmea_params[3].str, nmea_msgs[i].msg))
 			continue;
 		if (nmea_msgs[i].cnt <= cnt)
 			nmea_msgs[i].handler();
