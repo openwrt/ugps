@@ -105,8 +105,30 @@ usage(const char *prog)
 		"	-s <path>	Path to ubus socket\n"
 		"	-d <level>	Enable debug messages\n"
 		"	-S		Print messages to stdout\n"
+		"	-b		Set gps device baud rate\n"
 		"\n", prog);
 	return -1;
+}
+
+static speed_t get_baudrate(int baudrate)
+{
+    switch (baudrate) {
+		case 4800:
+			return B4800;
+		case 9600:
+			return B9600;
+		case 19200:
+			return B19200;
+		case 38400:
+			return B38400;
+		case 57600:
+			return B57600;
+		case 115200:
+			return B115200;
+		default:
+			fprintf(stderr, "ERROR: incorrect baud rate. Default 4800 baud rate has been set\n");
+			return B4800;
+    }
 }
 
 int
@@ -116,6 +138,7 @@ main(int argc, char ** argv)
 	char *device = NULL;
 	char *dbglvl = getenv("DBGLVL");
 	int ulog_channels = ULOG_KMSG;
+	speed_t baudrate = B4800;
 
 	signal(SIGPIPE, SIG_IGN);
 
@@ -124,7 +147,7 @@ main(int argc, char ** argv)
 		unsetenv("DBGLVL");
 	}
 
-	while ((ch = getopt(argc, argv, "ad:s:S")) != -1) {
+	while ((ch = getopt(argc, argv, "ad:s:S:b:")) != -1) {
 		switch (ch) {
 		case 'a':
 			adjust_clock = -1;
@@ -137,6 +160,9 @@ main(int argc, char ** argv)
 			break;
 		case 'S':
 			ulog_channels = ULOG_STDIO;
+			break;
+		case 'b':
+			baudrate = get_baudrate(atoi(optarg));
 			break;
 		default:
 			return usage(argv[0]);
@@ -156,7 +182,7 @@ main(int argc, char ** argv)
 	conn.cb = ubus_connect_handler;
 	ubus_auto_connect(&conn);
 
-	if (nmea_open(device, &stream, B4800) < 0)
+	if (nmea_open(device, &stream, baudrate) < 0)
 		return -1;
 
 	uloop_run();
