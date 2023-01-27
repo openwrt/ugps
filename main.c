@@ -147,7 +147,7 @@ main(int argc, char ** argv)
 		unsetenv("DBGLVL");
 	}
 
-	while ((ch = getopt(argc, argv, "ad:s:S:b:")) != -1) {
+	while ((ch = getopt(argc, argv, "ad:s:Sb:")) != -1) {
 		switch (ch) {
 		case 'a':
 			adjust_clock = -1;
