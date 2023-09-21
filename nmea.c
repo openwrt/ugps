@@ -52,7 +52,7 @@ struct nmea_param {
 } nmea_params[MAX_NMEA_PARAM];
 
 static int nmea_bad_time;
-char longitude[33] = { 0 }, latitude[33] = { 0 }, course[17] = { 0 }, speed[17] = { 0 }, elevation[17] = { 0 };
+char longitude[33] = { 0 }, latitude[33] = { 0 }, course[17] = { 0 }, speed[17] = { 0 }, elevation[17] = { 0 }, satellites[3] = { 0 }, hdop[5] = { 0 };
 int gps_valid = 0;
 char gps_fields = 0;
 
@@ -222,8 +222,12 @@ nmea_gga_cb(void)
 {
 	if (!gps_valid)
 		return;
+	strncpy(satellites, nmea_params[7].str, sizeof(satellites));
+ 	strncpy(hdop, nmea_params[8].str, sizeof(hdop));
 	strncpy(elevation, nmea_params[9].str, sizeof(elevation));
-	gps_fields |= GPS_FIELD_ALT;
+	gps_fields |= GPS_FIELD_SAT | GPS_FIELD_HDP | GPS_FIELD_ALT;
+	DEBUG(4, "satellites: %s\n", satellites);
+ 	DEBUG(4, "HDOP: %s\n", hdop);
 	DEBUG(4, "height: %s\n", elevation);
 }
 

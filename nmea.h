@@ -23,7 +23,7 @@
 
 #include <libubox/ustream.h>
 
-extern char longitude[33], latitude[33], course[17], speed[17], elevation[17];
+extern char longitude[33], latitude[33], course[17], speed[17], elevation[17], satellites[3], hdop[5];;
 extern int nmea_open(char *dev, struct ustream_fd *s, speed_t speed);
 extern void gps_timestamp(void);
 extern unsigned int adjust_clock;
@@ -33,5 +33,7 @@ extern char gps_fields;
 #define GPS_FIELD_COG (1<<2)
 #define GPS_FIELD_SPD (1<<3)
 #define GPS_FIELD_ALT (1<<4)
+#define GPS_FIELD_SAT (1<<5)
+#define GPS_FIELD_HDP (1<<6)
 
 #endif
