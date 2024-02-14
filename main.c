@@ -66,6 +66,10 @@ gps_info(struct ubus_context *ctx, struct ubus_object *obj,
 			blobmsg_add_string(&b, "course", course);
 		if (gps_fields & GPS_FIELD_SPD)
 			blobmsg_add_string(&b, "speed", speed);
+		if (gps_fields & GPS_FIELD_SAT)
+			blobmsg_add_string(&b, "satellites", satellites);
+		if (gps_fields & GPS_FIELD_HDP)
+			blobmsg_add_string(&b, "HDOP", hdop);
 	}
 	ubus_send_reply(ctx, req, b.head);
 
